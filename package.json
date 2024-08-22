@@ -1,0 +1,13 @@
+{
+  "name": "demo-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config ./webpack/webpack.config.prod.js",
+    "start": "webpack-dev-server --config ./webpack/webpack.config.dev.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
