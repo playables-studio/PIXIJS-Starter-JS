@@ -3,6 +3,8 @@ import { gsap } from "gsap";
 import { PixiPlugin } from "gsap/PixiPlugin";
 import { Loader } from "./Loader";
 import { ScenesManager } from "./ScenesManager";
+import PlayableAnalytic from "./PlayableAnalytic";
+import MarketHelper from "./helpers/MarketHelper";
 
 class Application {
     run(config) {
@@ -11,7 +13,15 @@ class Application {
 
         this.config = config;
 
-        this.app = new PIXI.Application({resizeTo: window});
+        this.analytics =  new PlayableAnalytic(config.apiUrl, config.adNetwork);
+        this.marketHelper = new MarketHelper(config.adNetwork, this.analytics);
+
+        const options = {
+            resizeTo: window
+        }
+
+        this.app = new PIXI.Application(options);
+
         document.body.appendChild(this.app.view);
 
         this.scenes = new ScenesManager();

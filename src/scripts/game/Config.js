@@ -4,6 +4,9 @@ import { Tools } from "../system/Tools";
 export const Config = {
     loader: Tools.massiveRequire(require["context"]('./../../sprites/', true, /\.(mp3|png|jpe?g)$/)),
     scenes: {
-        "Game": Game
-    }
+        'Game': Game
+    },
+    apiUrl: 'https://playables.studio',
+    adNetwork: 'unity',
+    
 };
