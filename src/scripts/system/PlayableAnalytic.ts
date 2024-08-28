@@ -1,26 +1,28 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
+
+interface EventData {
+  [key: string]: any;
+}
 
 class PlayableAnalytic {
-  constructor(baseUrl, adNetwork) {
-    if (PlayableAnalytic.instance) {
-      return PlayableAnalytic.instance;
-    }
+  private static instance: PlayableAnalytic;
+  private baseUrl: string;
+  private adNetwork: string;
+  private sessionId: string;
+  private startTime: number;
 
+  private constructor(baseUrl: string, adNetwork: string) {
     this.baseUrl = baseUrl;
     this.adNetwork = adNetwork;
     this.sessionId = this.getSessionId();
-    this.startTime = Date.now();  // Record the start time of the session
+    this.startTime = Date.now(); 
 
-    // Automatically track session start
     this.trackSessionStart();
 
-    // Set up event listener for session end
     window.addEventListener('beforeunload', () => this.trackSessionEnd());
-
-    PlayableAnalytic.instance = this;
   }
 
-  static getInstance(baseUrl, adNetwork) {
+  public static getInstance(baseUrl: string, adNetwork: string): PlayableAnalytic {
     if (!PlayableAnalytic.instance) {
       PlayableAnalytic.instance = new PlayableAnalytic(baseUrl, adNetwork);
     }
@@ -28,7 +30,7 @@ class PlayableAnalytic {
     return PlayableAnalytic.instance;
   }
 
-  getSessionId() {
+  private getSessionId(): string {
     let sessionId = sessionStorage.getItem('session_id');
     if (!sessionId) {
       sessionId = this.generateSessionId();
@@ -37,15 +39,15 @@ class PlayableAnalytic {
     return sessionId;
   }
 
-  generateSessionId() {
-    return 'xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  private generateSessionId(): string {
+    return 'xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0,
         v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
 
-  sendEvent(eventName, eventData) {
+  private sendEvent(eventName: string, eventData?: EventData): Promise<void> {
     const data = {
       sessionId: this.sessionId,
       adNetwork: this.adNetwork,
@@ -55,16 +57,15 @@ class PlayableAnalytic {
     };
 
     return axios.post(`${this.baseUrl}/api/analytics/track-event`, data)
-      .then(response => console.log(`Event ${eventName} tracked:`, response.data))
-      .catch(error => console.error(`Error tracking ${eventName} event:`, error));
+      .then((response: AxiosResponse) => console.log(`Event ${eventName} tracked:`, response.data))
+      .catch((error: Error) => console.error(`Error tracking ${eventName} event:`, error));
   }
 
-
-  trackSessionStart() {
+  private trackSessionStart(): void {
     this.sendEvent('session_start', { startTime: new Date(this.startTime).toISOString() });
   }
 
-  trackSessionEnd() {
+  private trackSessionEnd(): void {
     const endTime = Date.now();
     const playtime = (endTime - this.startTime) / 1000;  // Calculate playtime in seconds
 
@@ -74,11 +75,11 @@ class PlayableAnalytic {
     });
   }
 
-  newDesignEvent(eventData) {
+  public newDesignEvent(eventData: EventData): void {
     this.sendEvent('design_event', eventData);
   }
 
-  newBusinessEvent(eventData) {
+  public newBusinessEvent(eventData: EventData): void {
     this.sendEvent('business_event', eventData);
   }
 }

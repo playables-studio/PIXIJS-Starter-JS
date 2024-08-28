@@ -1,15 +1,11 @@
-// src/networks/NetworkFactory.js
-
 import AppLovinInitializer from './AppLovinInitializer';
-import UnityInitializer from './UnityInitializer';
 
-const networkInitializers = {
+const networkInitializers: { [key: string]: { new(): NetworkInitializer } } = {
     appLovin: AppLovinInitializer,
-    unity: UnityInitializer,
 };
 
 class NetworkFactory {
-    static createInitializer(networkName) {
+    static createInitializer(networkName: string): NetworkInitializer {
         const InitializerClass = networkInitializers[networkName];
 
         if (!InitializerClass) {

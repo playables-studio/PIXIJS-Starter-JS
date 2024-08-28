@@ -2,6 +2,8 @@ import * as PIXI from "pixi.js";
 import { App } from "./App";
 
 export class Scene {
+    public container: PIXI.Container;
+
     constructor() {
         this.container = new PIXI.Container();
         this.container.interactive = true;
@@ -9,11 +11,13 @@ export class Scene {
         App.app.ticker.add(this.update, this);
     }
 
-    create() {}
-    update() {}
-    destroy() {}
+    create(): void {}
 
-    remove() {
+    update(delta: number): void {}
+
+    destroy(): void {}
+
+    remove(): void {
         App.app.ticker.remove(this.update, this);
         this.destroy();
     }

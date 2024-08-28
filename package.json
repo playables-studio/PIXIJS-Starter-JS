@@ -12,10 +12,14 @@
     "pixi.js": "^6.5.1"
   },
   "devDependencies": {
+    "@types/gsap": "^3.0.0",
+    "@types/pixi.js": "^5.0.0",
     "babel-loader": "^8.2.5",
     "clean-webpack-plugin": "^4.0.0",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0"
