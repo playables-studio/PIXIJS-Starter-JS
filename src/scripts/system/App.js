@@ -5,6 +5,7 @@ import { Loader } from "./Loader";
 import { ScenesManager } from "./ScenesManager";
 import PlayableAnalytic from "./PlayableAnalytic";
 import MarketHelper from "./helpers/MarketHelper";
+import NetworkFactory from './networks/NetworkFactory';
 
 class Application {
     run(config) {
@@ -13,8 +14,13 @@ class Application {
 
         this.config = config;
 
-        this.analytics =  new PlayableAnalytic(config.apiUrl, config.adNetwork);
-        this.marketHelper = new MarketHelper(config.adNetwork, this.analytics);
+        this.adNetwork =  config.defaultAdNetwork; //process.env.AD_NETWORK ||
+
+        this.analytics =  new PlayableAnalytic(config.apiUrl, this.adNetwork);
+        this.marketHelper = new MarketHelper(this.adNetwork, this.analytics);
+        this.adNetwork = NetworkFactory.createInitializer( this.adNetwork);
+
+        this.adNetwork.initialize();
 
         const options = {
             resizeTo: window

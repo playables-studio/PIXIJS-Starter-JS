@@ -7,6 +7,5 @@ export const Config = {
         'Game': Game
     },
     apiUrl: 'https://playables.studio',
-    adNetwork: 'unity',
-    
+    defaultAdNetwork: 'unity',
 };
