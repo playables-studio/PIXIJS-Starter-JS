@@ -4,7 +4,7 @@ import { PixiPlugin } from "gsap/PixiPlugin";
 import { Loader } from './Loader';
 import { ScenesManager } from './ScenesManager';
 import PlayableAnalytic from './PlayableAnalytic';
-import MarketHelper from './helpers/MarketHelper';
+import { MarketHelper, MarketConfig } from './helpers/MarketHelper';
 import NetworkFactory from './networks/NetworkFactory';
 import SessionHelper from "./helpers/SessionHelper";
 
@@ -27,23 +27,31 @@ class Application {
     private analytics!: PlayableAnalytic;
     private marketHelper!: MarketHelper;
     private sessionHelper!: SessionHelper;
-    private adNetwork: any; // Consider defining a more specific type for adNetwork
+    private adNetwork!: NetworkInitializer; // Consider defining a more specific type for adNetwork
 
     run(config: Config) {
         gsap.registerPlugin(PixiPlugin);
         PixiPlugin.registerPIXI(PIXI);
 
         this.config = config;
-        this.adNetwork = config.defaultAdNetwork; // or process.env.AD_NETWORK
         this.projectId = config.projectId;
         this.sessionHelper = SessionHelper.getInstance();
         this.sessionId = this.sessionHelper.getSessionId();
 
-        this.analytics = PlayableAnalytic.getInstance(config.apiUrl, this.adNetwork);
-        this.adNetwork = NetworkFactory.createInitializer(this.adNetwork);
+        const networkName = config.defaultAdNetwork; // or process.env.AD_NETWORK
 
-        this.marketHelper = new MarketHelper(this.adNetwork, this.analytics);
+        this.analytics = PlayableAnalytic.getInstance(config.apiUrl, networkName);
+        this.marketHelper = MarketHelper.getInstance(networkName, this.analytics);
+        this.adNetwork = NetworkFactory.createInitializer(networkName);
 
+        const marketConfig: MarketConfig = {
+            gotoMarketAfterRetryNum: 5,
+            gotoMarketAfterTime: 10,
+            gotoMarketClickNum: 10,
+            gotoMarketUpClickNum: 10
+        };
+
+        this.marketHelper.initMarketFunctions(marketConfig);
         this.adNetwork.initialize();
 
 

@@ -1,81 +1,99 @@
-interface MarketConfig {
-  gotoMarketClickNum: number;
-  gotoMarketUpClickNum: number;
-  gotoMarketAfterTime: number;
-  gotoMarketAfterRetryNum: number;
-  gotoMarketAfterTimeAuto?: number; // Optional because it might not always be provided
-}
+import PlayableAnalytic from "../PlayableAnalytic";
 
-interface Analytics {
-  // Define the structure of the analytics object here if needed
+interface MarketConfig {
+    gotoMarketClickNum: number;
+    gotoMarketUpClickNum: number;
+    gotoMarketAfterTime: number;
+    gotoMarketAfterRetryNum: number;
+    gotoMarketAfterTimeAuto?: number; // Optional because it might not always be provided
 }
 
 class MarketHelper {
-  private type: string;
-  private analytics: Analytics;
-  private curGoToMarketClickNum: number;
-  private curGoToMarketClickUpNum: number;
-  private curGoToMarketRetryNum: number;
-  private gotoMarketClickNum: number = 0;
-  private gotoMarketUpClickNum: number = 0;
-  private gotoMarketAfterTime: number = 0;
-  private gotoMarketAfterRetryNum: number  = 0;
-  private startTime: number;
-  private gamePaused: boolean;
+    private static instance: MarketHelper;
+    
+    private type: string;
+    private analytics: PlayableAnalytic;
+    private curGoToMarketClickNum: number;
+    private curGoToMarketClickUpNum: number;
+    private curGoToMarketRetryNum: number;
+    private gotoMarketClickNum: number = 0;
+    private gotoMarketUpClickNum: number = 0;
+    private gotoMarketAfterTime: number = 0;
+    private gotoMarketAfterRetryNum: number = 0;
+    private startTime: number;
+    private gamePaused: boolean;
 
-  constructor(type: string, analytics: Analytics) {
-      this.type = type;
-      this.analytics = analytics;
-      this.curGoToMarketClickNum = 0;
-      this.curGoToMarketClickUpNum = 0;
-      this.curGoToMarketRetryNum = 0;
-      this.startTime = performance.now();
-      this.gamePaused = false; // Assuming a default value; adjust as needed
-  }
+    // Private constructor to prevent direct instantiation
+    private constructor(type: string, analytics: PlayableAnalytic) {
+        this.type = type;
+        this.analytics = analytics;
+        this.curGoToMarketClickNum = 0;
+        this.curGoToMarketClickUpNum = 0;
+        this.curGoToMarketRetryNum = 0;
+        this.startTime = performance.now();
+        this.gamePaused = false; // Assuming a default value; adjust as needed
+    }
 
-  initMarketFunctions(config: MarketConfig): void {
-      this.gotoMarketClickNum = Number(config.gotoMarketClickNum);
-      this.gotoMarketUpClickNum = Number(config.gotoMarketUpClickNum);
-      this.gotoMarketAfterTime = Number(config.gotoMarketAfterTime);
-      this.gotoMarketAfterRetryNum = Number(config.gotoMarketAfterRetryNum);
+    // Public static method to get the singleton instance
+    public static getInstance(type: string, analytics: PlayableAnalytic): MarketHelper {
+        if (!MarketHelper.instance) {
+            MarketHelper.instance = new MarketHelper(type, analytics);
+        }
+        return MarketHelper.instance;
+    }
 
-      document.body.addEventListener("touchstart", this.handleMarketClick.bind(this));
-      document.body.addEventListener("touchend", this.handleMarketClickUp.bind(this));
+    public initMarketFunctions(config: MarketConfig): void {
+        this.gotoMarketClickNum = Number(config.gotoMarketClickNum);
+        this.gotoMarketUpClickNum = Number(config.gotoMarketUpClickNum);
+        this.gotoMarketAfterTime = Number(config.gotoMarketAfterTime);
+        this.gotoMarketAfterRetryNum = Number(config.gotoMarketAfterRetryNum);
 
-      this.setupAutoMarket(config);
-  }
+        document.body.addEventListener("touchstart", this.handleMarketClick.bind(this));
+        document.body.addEventListener("touchend", this.handleMarketClickUp.bind(this));
 
-  private setupAutoMarket(config: MarketConfig): void {
-      const checkInterval = (): void => {
-          if (!this.gamePaused && config.gotoMarketAfterTimeAuto && this.timePassed() > config.gotoMarketAfterTimeAuto) {
-              this.openMarket();
-          }
-          requestAnimationFrame(checkInterval);
-      };
-      requestAnimationFrame(checkInterval);
-  }
+        this.setupAutoMarket(config);
+    }
 
-  private handleMarketClick(event: TouchEvent): void {
-      this.curGoToMarketClickNum++;
-      if (this.curGoToMarketClickNum >= this.gotoMarketClickNum) {
-          this.openMarket();
-      }
-  }
+    private setupAutoMarket(config: MarketConfig): void {
+        const checkInterval = (): void => {
+            if (!this.gamePaused && config.gotoMarketAfterTimeAuto && this.timePassed() > config.gotoMarketAfterTimeAuto) {
+                this.openMarket();
+            }
+            requestAnimationFrame(checkInterval);
+        };
+        requestAnimationFrame(checkInterval);
+    }
 
-  private handleMarketClickUp(event: TouchEvent): void {
-      this.curGoToMarketClickUpNum++;
-      if (this.curGoToMarketClickUpNum >= this.gotoMarketUpClickNum) {
-          this.openMarket();
-      }
-  }
+    private handleMarketClick(event: TouchEvent): void {
+        this.curGoToMarketClickNum++;
 
-  private openMarket(): void {
-      console.log("Opening market for type: ", this.type);
-  }
+        this.analytics.newDesignEvent({
+            goToMarketClick: this.curGoToMarketClickNum,
+        });
 
-  private timePassed(): number {
-      return performance.now() - this.startTime;
-  }
+        if (this.curGoToMarketClickNum >= this.gotoMarketClickNum) {
+            this.openMarket();
+        }
+    }
+
+    private handleMarketClickUp(event: TouchEvent): void {
+        this.curGoToMarketClickUpNum++;
+        if (this.curGoToMarketClickUpNum >= this.gotoMarketUpClickNum) {
+            this.openMarket();
+        }
+    }
+
+    private openMarket(): void {
+        this.analytics.newDesignEvent({
+            openMarket: "1"
+        });
+
+        console.log("Opening market for type: ", this.type);
+    }
+
+    private timePassed(): number {
+        return performance.now() - this.startTime;
+    }
 }
 
-export default MarketHelper;
+export { MarketHelper, MarketConfig};
