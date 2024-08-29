@@ -1,3 +1,5 @@
+import { App } from './App';
+import SessionHelper from './helpers/SessionHelper'
 import axios, { AxiosResponse } from 'axios';
 
 interface EventData {
@@ -9,13 +11,16 @@ class PlayableAnalytic {
   private baseUrl: string;
   private adNetwork: string;
   private sessionId: string;
+  private projectId: string;
   private startTime: number;
 
   private constructor(baseUrl: string, adNetwork: string) {
     this.baseUrl = baseUrl;
     this.adNetwork = adNetwork;
-    this.sessionId = this.getSessionId();
-    this.startTime = Date.now(); 
+    this.sessionId = App.sessionId;
+    this.projectId = App.projectId;
+    
+    this.startTime = Date.now();
 
     this.trackSessionStart();
 
@@ -30,31 +35,17 @@ class PlayableAnalytic {
     return PlayableAnalytic.instance;
   }
 
-  private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('session_id');
-    if (!sessionId) {
-      sessionId = this.generateSessionId();
-      sessionStorage.setItem('session_id', sessionId);
-    }
-    return sessionId;
-  }
-
-  private generateSessionId(): string {
-    return 'xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0,
-        v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
-
   private sendEvent(eventName: string, eventData?: EventData): Promise<void> {
     const data = {
+      projectId: this.projectId,
       sessionId: this.sessionId,
       adNetwork: this.adNetwork,
       eventName: eventName,
       eventData: eventData ? JSON.stringify(eventData) : null,
       timestamp: Date.now()
     };
+
+    console.log(data);
 
     return axios.post(`${this.baseUrl}/api/analytics/track-event`, data)
       .then((response: AxiosResponse) => console.log(`Event ${eventName} tracked:`, response.data))
@@ -71,7 +62,7 @@ class PlayableAnalytic {
 
     this.sendEvent('session_end', {
       endTime: new Date(endTime).toISOString(),
-      playtime: playtime  // Include playtime in the session end event
+      playtime: playtime
     });
   }
 

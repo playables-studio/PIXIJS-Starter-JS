@@ -6,21 +6,27 @@ import { ScenesManager } from './ScenesManager';
 import PlayableAnalytic from './PlayableAnalytic';
 import MarketHelper from './helpers/MarketHelper';
 import NetworkFactory from './networks/NetworkFactory';
+import SessionHelper from "./helpers/SessionHelper";
 
 interface Config {
     apiUrl: string;
     defaultAdNetwork: string;
+    projectName: string;
+    projectId: string;
     [key: string]: any;
 }
 
 class Application {
     public config!: Config;
     public app!: PIXI.Application;
-   
+    public sessionId!: string;
+    public projectId!: string;
+
     private scenes!: ScenesManager;
     private loader!: Loader;
     private analytics!: PlayableAnalytic;
     private marketHelper!: MarketHelper;
+    private sessionHelper!: SessionHelper;
     private adNetwork: any; // Consider defining a more specific type for adNetwork
 
     run(config: Config) {
@@ -28,20 +34,23 @@ class Application {
         PixiPlugin.registerPIXI(PIXI);
 
         this.config = config;
-
         this.adNetwork = config.defaultAdNetwork; // or process.env.AD_NETWORK
+        this.projectId = config.projectId;
+        this.sessionHelper = SessionHelper.getInstance();
+        this.sessionId = this.sessionHelper.getSessionId();
 
         this.analytics = PlayableAnalytic.getInstance(config.apiUrl, this.adNetwork);
-        this.marketHelper = new MarketHelper(this.adNetwork, this.analytics);
         this.adNetwork = NetworkFactory.createInitializer(this.adNetwork);
+
+        this.marketHelper = new MarketHelper(this.adNetwork, this.analytics);
 
         this.adNetwork.initialize();
 
-        const options = {
-            resizeTo: window
-        }
 
-        this.app = new PIXI.Application(options);
+        this.app = new PIXI.Application({
+            resizeTo: window,
+
+        });
 
         document.body.appendChild(this.app.view);
 
@@ -49,7 +58,7 @@ class Application {
         this.app.stage.interactive = true;
         this.app.stage.addChild(this.scenes.container);
 
-         this.loader = new Loader(this.app.loader, { loader :this.config.loader});
+        this.loader = new Loader(this.app.loader, { loader: this.config.loader });
         this.loader.preload().then(() => this.start());
     }
 

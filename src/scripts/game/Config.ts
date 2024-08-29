@@ -14,13 +14,17 @@ interface ConfigType {
     };
     apiUrl: string;
     defaultAdNetwork: string;
+    projectName: string;
+    projectId: string;
 }
 
 export const Config: ConfigType = {
+    projectName: "",
+    projectId: "",
+    defaultAdNetwork: 'appLovin',
+    apiUrl: 'https://playables.studio',
     loader: Tools.massiveRequire(require.context('./../../sprites/', true, /\.(mp3|png|jpe?g)$/)),
     scenes: {
         'Game': Game
     },
-    apiUrl: 'https://playables.studio',
-    defaultAdNetwork: 'appLovin',
 };

@@ -13,7 +13,8 @@ export class Scene {
 
     create(): void {}
 
-    update(delta: number): void {}
+    update(delta: number): void {
+    }
 
     destroy(): void {}
 
